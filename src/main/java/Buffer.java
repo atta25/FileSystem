@@ -3,8 +3,8 @@ public class Buffer {
     private int start;
     private int end;
 
-    public Buffer(int start, int end, int size) {
-        bytes = new byte[size];
+    public Buffer(int start, int end) {
+        bytes = new byte[end - start];
         this.start = start;
         this.end = end;
     }
@@ -19,9 +19,5 @@ public class Buffer {
 
     public int getEnd() {
         return end;
-    }
-
-    public void limit(int bytesRead) {
-        end = start + bytesRead - 1;
     }
 }

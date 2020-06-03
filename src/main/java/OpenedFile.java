@@ -13,7 +13,7 @@ public class OpenedFile {
 
     public void readSync(Buffer buffer) {
         int bytesRead = lowLevelFileSystem.syncReadFile(fileDescriptor, buffer.getBytes(), buffer.getStart(), buffer.getEnd());
-        buffer.limit(bytesRead);
+        validateBytesRead(bytesRead);
     }
 
     public void writeSync(Buffer buffer) {
@@ -25,7 +25,24 @@ public class OpenedFile {
                                         buffer.getBytes(),
                                         buffer.getStart(),
                                         buffer.getEnd(), bytesRead -> {
-                                        buffer.limit(bytesRead);
+                                        validateBytesRead(bytesRead);
                                         });
+    }
+
+    public void readAndWriteComplete(Buffer buffer) {
+        int bytesRead = lowLevelFileSystem.syncReadFile(fileDescriptor, buffer.getBytes(), buffer.getStart(), buffer.getEnd());
+        Buffer bufferToWrite = new Buffer(0, bytesRead);
+        writeSync(bufferToWrite);
+
+        while (buffer.getEnd() == bytesRead) {
+            bytesRead = lowLevelFileSystem.syncReadFile(fileDescriptor, buffer.getBytes(), buffer.getStart(), buffer.getEnd());
+            writeSync(bufferToWrite);
+        }
+    }
+
+    private void validateBytesRead(int bytesRead) {
+        if (bytesRead <= 0) {
+            throw new ReadFileException();
+        }
     }
 }
